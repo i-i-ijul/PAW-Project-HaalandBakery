@@ -30,6 +30,9 @@
     var messages = document.getElementById('chat-float-messages');
     var closeBtn = document.getElementById('chat-float-close');
 
+    // 1. Buat array penampung riwayat chat
+    var chatHistory = [];
+
     function setScroll() {
       messages.scrollTop = messages.scrollHeight;
     }
@@ -55,17 +58,29 @@
       setScroll();
 
       try {
+        // 2. Kirim pesan beserta history ke backend
         var res = await fetch('/chat/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
+          body: JSON.stringify({ 
+            message: text,
+            history: chatHistory // <-- Kirim riwayat chat ke backend
+          })
         });
+        
         var data = await res.json();
+        var botReply = data.response || 'Maaf, ada yang error';
+
         var botMsg = document.createElement('div');
         botMsg.className = 'chat-float-msg bot';
-        botMsg.textContent = 'Bot: ' + (data.response || 'Maaf, ada yang error');
+        botMsg.textContent = 'Bot: ' + botReply;
         messages.appendChild(botMsg);
         setScroll();
+
+        // 3. Masukkan percakapan ini ke chatHistory supaya terekam untuk chat berikutnya
+        chatHistory.push({ role: "user", content: text });
+        chatHistory.push({ role: "assistant", content: botReply });
+
       } catch (err) {
         var errMsg = document.createElement('div');
         errMsg.className = 'chat-float-msg bot';
