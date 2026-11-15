@@ -4,10 +4,9 @@ const session = require("express-session");
 const path = require("path");
 const { sequelize } = require("./models");
 
-const authRoutes = require("./routes/auth.routes");
-const productRoutes = require("./routes/product.routes");
-const viewRoutes = require("./routes/view.routes");
-
+const viewRouter = require("./routes/web");
+const apiRouter  = require("./routes/api");
+const chatRoutes = require("./chat/chatRoutes");
 const app = express();
 
 app.set("view engine", "ejs");
@@ -23,15 +22,16 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 hari
+      maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
     },
-  }),
+  })
 );
 
-app.use("/auth", authRoutes);
-app.use("/products", productRoutes);
-app.use("/", viewRoutes);
+// Routes
+app.use("/", viewRouter);
+app.use("/api", apiRouter);
+app.use("/chat", chatRoutes);  
 
 const PORT = process.env.PORT || 3000;
 
@@ -40,7 +40,6 @@ async function start() {
     await sequelize.authenticate();
     console.log("Koneksi database berhasil");
 
-    // sync model ke db (bikin tabel kalo belum ada)
     await sequelize.sync();
     console.log("Sync model selesai");
 
