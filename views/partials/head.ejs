@@ -159,4 +159,149 @@
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
+  <style>
+    /* Chat widget — persegi kecil di pojok kanan bawah */
+    .chat-float-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: 0 8px 20px rgb(80 60 40 / 12%);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      z-index: 9999;
+      transition: transform .2s, box-shadow .2s, background .2s;
+    }
+    .chat-float-btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 10px 26px rgb(80 60 40 / 18%);
+      background: #fff;
+    }
+    .chat-float-btn:focus-visible {
+      outline: 3px solid var(--honey);
+      outline-offset: 3px;
+    }
+    .chat-float-dot {
+      position: absolute;
+      bottom: 14px;
+      right: 18px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--rust);
+      animation: chat-float-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes chat-float-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgb(166 78 50 / 45%); }
+      50% { box-shadow: 0 0 0 6px rgb(166 78 50 / 0%); }
+    }
+    .chat-float-panel {
+      position: fixed;
+      bottom: 96px;
+      right: 24px;
+      width: 320px;
+      max-width: calc(100vw - 48px);
+      max-height: calc(100vh - 160px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: 0 16px 44px rgb(60 45 28 / 16%);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px) scale(.96);
+      transition: opacity .25s, visibility .25s, transform .25s, bottom .25s;
+      display: none;
+    }
+    .chat-float-open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      display: flex;
+    }
+    .chat-float-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .chat-float-header span { font-weight: 800; font-size: 13px; color: var(--ink); }
+    .chat-float-close {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+    .chat-float-close:hover { background: rgb(240 235 225 / 55%); color: var(--ink); }
+    .chat-float-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-float-msg {
+      padding: 9px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 85%;
+    }
+    .chat-float-msg.bot {
+      background: rgb(245 240 230 / 60%);
+      color: var(--ink);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-float-msg.user {
+      background: var(--rust);
+      color: #fff;
+      align-self: flex-end;
+      text-align: right;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-float-form {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+    }
+    .chat-float-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .chat-float-input:focus {
+      border-color: var(--rust);
+      box-shadow: 0 0 0 3px rgb(166 78 50 / 15%);
+    }
+    .chat-float-send {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: var(--rust);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .chat-float-send:hover { background: var(--rust-dark); }
+  </style>
 </head>

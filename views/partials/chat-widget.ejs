@@ -1,0 +1,78 @@
+<!-- Chat widget button + panel -->
+<button class="chat-float-btn" id="chat-float-btn" aria-label="Buka chat">
+  <svg viewBox="0 0 24 24" fill="none" stroke="var(--rust)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="26" height="26" aria-hidden="true">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    <path d="M8.5 11.5c0 2 2.5 3 5 2.5"/>
+  </svg>
+  <span class="chat-float-dot" aria-hidden="true"></span>
+</button>
+
+<div class="chat-float-panel" id="chat-float-panel">
+  <div class="chat-float-header">
+    <span>Toko Roti</span>
+    <button class="chat-float-close" id="chat-float-close" aria-label="Tutup chat">✕</button>
+  </div>
+  <div class="chat-float-messages" id="chat-float-messages">
+    <div class="chat-float-msg bot">Halo! Ada yang bisa dibantu?</div>
+  </div>
+  <form class="chat-float-form" id="chat-float-form">
+    <input class="chat-float-input" id="chat-float-input" placeholder="Ketik pesan..." autocomplete="off" />
+    <button class="chat-float-send" type="submit">Kirim</button>
+  </form>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('chat-float-btn');
+    var panel = document.getElementById('chat-float-panel');
+    var form = document.getElementById('chat-float-form');
+    var input = document.getElementById('chat-float-input');
+    var messages = document.getElementById('chat-float-messages');
+    var closeBtn = document.getElementById('chat-float-close');
+
+    function setScroll() {
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    btn.addEventListener('click', function () {
+      panel.classList.add('chat-float-open');
+    });
+
+    closeBtn.addEventListener('click', function () {
+      panel.classList.remove('chat-float-open');
+    });
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) return;
+
+      var userMsg = document.createElement('div');
+      userMsg.className = 'chat-float-msg user';
+      userMsg.textContent = 'Kamu: ' + text;
+      messages.appendChild(userMsg);
+      input.value = '';
+      setScroll();
+
+      try {
+        var res = await fetch('/chat/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        var data = await res.json();
+        var botMsg = document.createElement('div');
+        botMsg.className = 'chat-float-msg bot';
+        botMsg.textContent = 'Bot: ' + (data.response || 'Maaf, ada yang error');
+        messages.appendChild(botMsg);
+        setScroll();
+      } catch (err) {
+        var errMsg = document.createElement('div');
+        errMsg.className = 'chat-float-msg bot';
+        errMsg.textContent = 'Bot: Gagal terhubung ke server';
+        messages.appendChild(errMsg);
+        setScroll();
+      }
+    });
+  })();
+</script>
