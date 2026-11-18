@@ -5,11 +5,8 @@ const path = require("path");
 const { sequelize } = require("./models");
 
 const viewRouter = require("./routes/web");
-const apiRouter = require("./routes/api");
+const apiRouter  = require("./routes/api");
 const chatRoutes = require("./chat/chatRoutes");
-const authRoutes = require("./routes/authRoutes");
-const usahaRoutes = require("./routes/usahaRoutes");
-const pesananRoutes = require("./routes/pesananRoutes");
 const app = express();
 
 app.set("view engine", "ejs");
@@ -33,11 +30,8 @@ app.use(
 
 // Routes
 app.use("/", viewRouter);
-app.use("/api/auth", authRoutes);
-app.use("/api/usaha", usahaRoutes);
-app.use("/api/pesanan", pesananRoutes);
 app.use("/api", apiRouter);
-app.use("/chat", chatRoutes);
+app.use("/chat", chatRoutes);  
 
 const PORT = process.env.PORT || 3000;
 
