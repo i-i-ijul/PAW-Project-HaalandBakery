@@ -23,11 +23,14 @@ async function index(req, res) {
             }]
         });
 
-        res.render('index', { 
-            stores, 
-            searchQuery,
-            namaToko: "Toko Roti"
-        });
+
+    res.render('index', {
+        stores,
+        searchQuery,
+        namaToko: "Toko Roti",
+        userRole: req.session.role || null
+    });
+
     } catch (err) {
         console.error('Error loading dashboard:', err.message);
         res.status(500).send('Server Error');
