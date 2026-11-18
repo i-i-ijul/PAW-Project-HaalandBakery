@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Penjual | <%= judul || "Toko" %></title>
+  <link rel="stylesheet" href="/css/app.css" />
+  <style>
+    .dash-head { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; justify-content: space-between; margin-bottom: 18px; }
+    .dash-head h1 { margin: 0; font-size: 24px; }
+    .dash-nav a { display: inline-block; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--muted); }
+    .dash-nav a:hover { border-color: var(--rust); color: var(--rust); }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="session-bar">
+      <div class="session-user">
+        <b><span id="session-nama"></span></b>
+        <span class="role-badge" id="session-role"></span>
+      </div>
+      <div class="spacer"></div>
+      <button class="link-button" id="btn-logout">Keluar</button>
+    </nav>
+
+    <div class="dash-head">
+      <h1>Dashboard Penjual</h1>
+      <nav class="dash-nav">
+        <a href="/">← Beranda</a>
+        <a href="/pesanan">Pesanan toko</a>
+      </nav>
+    </div>
+
+    <!-- === 1. PROFIL USAHA === -->
+    <section class="card">
+      <h2>Profil Usaha</h2>
+      <p class="lead">Isi data toko. Data ini akan ditampilkan kepada pembeli dan dipakai untuk melacak pesanan.</p>
+      <form id="form-usaha" class="row">
+        <div class="field" style="flex:1.4">
+          <label for="nama_toko">Nama Toko</label>
+          <input id="nama_toko" name="nama_toko" placeholder="Contoh: Toko Roti Mama" />
+        </div>
+        <div class="field" style="flex:1">
+          <label for="nomor_telepon">Nomor Telepon</label>
+          <input id="nomor_telepon" name="nomor_telepon" placeholder="0812-3456-7890" />
+        </div>
+        <div class="field" style="flex:1">
+          <label for="alamat_toko">Alamat Toko</label>
+          <input id="alamat_toko" name="alamat_toko" placeholder="Jl. Contoh No. 123, Kota" />
+        </div>
+        <div class="field" style="flex:1.4">
+          <label for="alamat_pengiriman">Alamat Pengiriman (default)</label>
+          <input id="alamat_pengiriman" name="alamat_pengiriman" placeholder="Alamat yang dituju saat pembeli pesan" />
+        </div>
+        <button class="btn btn-block" type="submit" id="btn-simpan-usaha">Simpan Profil</button>
+      </form>
+      <p class="hint" id="usaha-hint" style="display:none"></p>
+    </section>
+
+    <!-- === 2. BOT CAPTION === -->
+    <section class="card">
+      <h2>Bot Caption Produk</h2>
+      <p class="lead">Buat deskripsi/caption iklan produk dengan bantuan AI. Hasilnya langsung bisa disalin.</p>
+      <form id="form-caption">
+        <div class="field">
+          <label for="caption_produk">Nama Produk</label>
+          <input id="caption_produk" name="produk_nama" placeholder="Contoh: Roti Gandum" required />
+        </div>
+        <div class="field">
+          <label for="caption_poin">Ciri-ciri (opsional)</label>
+          <textarea id="caption_poin" name="poin_ciri" rows="2" placeholder="Contoh: gandum utuh, kaya serat, rasa gurih"></textarea>
+        </div>
+        <button class="btn btn-block" type="submit" id="btn-caption">Generate Caption</button>
+      </form>
+      <div class="card" style="margin-top:14px">
+        <p class="hint">Hasil caption:</p>
+        <textarea id="caption_hasil" rows="5" readonly placeholder="Caption akan muncul di sini..."></textarea>
+        <div class="form-actions" style="justify-content:flex-start">
+          <button class="btn btn-ghost" type="button" id="btn-salin">Salin</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- === 3. PESANAN TOKOHAN === -->
+    <section class="card">
+      <h2>Pesanan Masuk (Toko)</h2>
+      <p class="lead">Pantau dan perbarui status pesanan dari pembeli.</p>
+      <div id="pesanan-list" class="list-wrap">
+        <div class="loading">Memuat pesanan...</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    (function () {
+      const listEl = document.getElementById("pesanan-list");
+      const logoutBtn = document.getElementById("btn-logout");
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+        window.location.href = "/";
+      });
+
+      function pesan(el, txt, tipe) {
+        el.textContent = txt;
+        el.className = "empty" + (tipe ? " " + tipe : "");
+      }
+
+      async function loadPesanan() {
+        try {
+          const data = await fetch("/api/pesanan", { credentials: "same-origin" }).then(r => r.json());
+          const orders = data.data || [];
+          if (!orders.length) {
+            pesan(listEl, "Belum ada pesanan. Pembeli baru akan membeli dari toko Anda.", "empty");
+            return;
+          }
+          listEl.innerHTML = "";
+          orders.forEach(o => {
+            const p = document.createElement("div");
+            p.className = "order";
+            const label = o.status_label || o.status;
+            const prev = ["menunggu_pembayaran","dikonfirmasi","diproses","dikirim","diterima"];
+            const i = prev.indexOf(o.status);
+            let lihat = "";
+            for (let k = 0; k <= i; k++) {
+              const s = prev[k];
+              const lbl = { menunggu_pembayaran:"Menunggu Pembayaran", dikonfirmasi:"Dikonfirmasi", diproses:"Diproses", dikirim:"Dikirim", diterima:"Diterima"}[s];
+              lihat += `<span class="status-pill ${s}"><span class="dot"></span>${lbl}</span>`;
+            }
+            const resi = o.nomor_resi ? `<span class="status-pill" style="background:var(--green-bg);color:var(--green)">No. Resi ${o.nomor_resi}</span>` : "";
+            p.innerHTML = `
+              <div class="top">
+                <b>${escape(o.produk_nama)}</b>
+                <span class="pembeli">${escape(o.pembeli_nama)}</span>
+              </div>
+              <div class="jdl">${escape(o.deskripsi)}</div>
+              <div class="sub">Total: Rp ${Number(o.total_harga||0).toLocaleString('id-ID')} · Jumlah ${o.jumlah} · Dibeli ${new Date(o.dibuat_pada||'').toLocaleString('id-ID')}</div>
+              <div class="meta">
+                <div>Alamat: ${escape(o.alamat_pengiriman)}</div>
+                <div>Status: ${lihat}</div>
+                <div>No. Resi: ${resi}</div>
+              </div>
+              <form class="form-grid" data-update-status="${o.id}">
+                <select class="form-select" name="status">
+                  ${["menunggu_pembayaran","dikonfirmasi","diproses","dikirim","diterima"].map(s => {
+                    const lbl = {menunggu_pembayaran:"Menunggu Pembayaran", dikonfirmasi:"Dikonfirmasi", diproses:"Diproses", dikirim:"Dikirim", diterima:"Diterima"}[s];
+                    return `<option value="${s}" ${s===o.status?'selected':''}>${lbl}</option>`;
+                  }).join('')}
+                </select>
+                <button class="btn btn-sm" type="submit">Simpan</button>
+              </form>
+            `;
+            listEl.appendChild(p);
+          });
+          // binding submit pada form status
+          listEl.querySelectorAll("form[data-update-status]").forEach(f => {
+            f.addEventListener("submit", async (e) => {
+              e.preventDefault();
+              const id = f.dataset.updateStatus;
+              const status = f.querySelector("select").value;
+              try {
+                const data = await fetch("/api/pesanan/" + id + "/status", {
+                  method: "PUT", credentials: "same-origin",
+                  headers: {"Content-Type":"application/json"},
+                  body: JSON.stringify({ status })
+                }).then(r => r.json());
+                if (data.sukses) { pesan(listEl, data.pesan, "empty"); loadPesanan(); }
+                else pesan(listEl, data.pesan, "empty");
+              } catch(err) { pesan(listEl, err.message, "empty"); }
+            });
+          });
+        } catch (err) {
+          pesan(listEl, err.message, "empty");
+        }
+      }
+
+      function escape(s) { return String(s??"").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+      // ---- caption ----
+      const formCap = document.getElementById("form-caption");
+      const hasil = document.getElementById("caption_hasil");
+      const btnSalin = document.getElementById("btn-salin");
+      formCap.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const prod = formCap.querySelector("[name=produk_nama]").value.trim();
+        if (!prod) return alert("Nama produk wajib diisi.");
+        hasil.value = "Menghasilkan caption...";
+        try {
+          const data = await fetch("/api/caption", {
+            method: "POST", credentials: "same-origin",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ produk_nama: prod, poin_ciri: formCap.querySelector("[name=poin_ciri]").value.trim() })
+          }).then(r => r.json());
+          if (data.sukses) { hasil.value = data.caption; pesan(hasil, "", ""); }
+          else { hasil.value = "Gagal: " + (data.pesan||""); pesan(hasil, "", ""); }
+        } catch (err) { hasil.value = "Gagal: " + err.message; pesan(hasil, "", ""); }
+      });
+      btnSalin.addEventListener("click", () => {
+        hasil.select();
+        hasil.setSelectionRange(0, hasil.value.length);
+        navigator.clipboard.writeText(hasil.value).then(() => { pesan(hasil, "Tersalin!", "empty"); });
+      });
+
+      // ---- usaha ----
+      const formUsaha = document.getElementById("form-usaha");
+      formUsaha.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-simpan-usaha");
+        btn.disabled = true;
+        const body = new URLSearchParams(new FormData(formUsaha)).toString();
+        try {
+          const res = await fetch("/api/usaha", { method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body, });
+          const data = await res.json();
+          if (data.sukses) {
+            document.getElementById("usaha-hint").style.display = "block";
+            document.getElementById("usaha-hint").textContent = "Profil usaha tersimpan ✓";
+            formUsaha.reset();
+          } else { document.getElementById("usaha-hint").style.display="block"; document.getElementById("usaha-hint").textContent = data.pesan || "Gagal."; }
+        } catch (err) { document.getElementById("usaha-hint").style.display="block"; document.getElementById("usaha-hint").textContent = err.message; }
+        btn.disabled = false;
+      });
+
+      // ---- session ----
+      (async function init() {
+        try {
+          const data = await fetch("/api/auth/me", { credentials: "same-origin" }).then(r => r.json());
+          const u = data.data || {};
+          document.getElementById("session-nama").textContent = u.nama || u.email || "";
+          document.getElementById("session-role").textContent = u.role || "anonim";
+          document.getElementById("session-role").className = "role-badge " + (u.role||"");
+        } catch (_) {}
+        loadPesanan();
+      })();
+    })();
+  </script>
+</body>
+</html>
