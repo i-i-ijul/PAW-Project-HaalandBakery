@@ -1,9 +1,21 @@
 const express = require('express');
 const homeController = require('../controllers/homeController');
-// Jika kamu membuat authController terpisah, import di sini. 
-// Untuk praktisnya, kita bisa buat fungsi controllernya langsung atau di homeController.
 
 const router = express.Router();
+
+// --- MIDDLEWARE KHUSUS PENJUAL ---
+// Fungsi ini memastikan hanya user ber-role 'penjual' yang boleh masuk
+const isPenjual = (req, res, next) => {
+    if (!req.session || !req.session.userId) {
+        return res.redirect('/login');
+    }
+    if (req.session.role !== 'penjual') {
+        // Jika pembeli nekat masuk ke halaman penjual, lempar balik ke /dashboard
+        return res.status(403).send('Akses ditolak: Halaman ini khusus untuk Penjual.');
+        // Atau bisa juga: return res.redirect('/dashboard');
+    }
+    next();
+};
 
 router.get('/', (req, res) => {
     res.render('login', { error: null });
@@ -22,29 +34,23 @@ router.post('/login', async (req, res) => {
         const { email, password } = req.body;
         const db = require('../models');
 
-        // 1. Cari user berdasarkan email
         const user = await db.User.findOne({ where: { email } });
 
-        // 2. Cek apakah user ada dan password cocok
         if (!user || user.password !== password) {
             return res.render('login', { error: 'Email atau password salah!' });
         }
 
-        // 3. Simpan informasi user ke session
         req.session.userId = user.id;
         req.session.role = user.role;
 
-        // 4. Arahkan berdasarkan role user
         if (user.role === 'penjual') {
-            // Cek apakah penjual sudah pernah mengisi profil toko
             const store = await db.StoreProfile.findOne({ where: { userId: user.id } });
             if (store) {
-                return res.redirect('/dashboard'); // Sudah punya toko -> langsung dashboard utama
+                return res.redirect('/seller/profile-preview');
             } else {
-                return res.redirect('/seller/dashboard'); // Belum setup toko -> lengkapi profil dulu
+                return res.redirect('/seller/dashboard');
             }
         } else {
-            // Pembeli -> langsung ke dashboard utama
             return res.redirect('/dashboard');
         }
 
@@ -66,8 +72,8 @@ router.post('/register', async (req, res) => {
             role: role || 'pembeli'
         });
 
-        // Simpan ID user ke session agar dikenali di halaman berikutnya
         req.session.userId = newUser.id;
+        req.session.role = newUser.role; // Simpan role ke session saat registrasi
 
         if (newUser.role === 'penjual') {
             res.redirect('/seller/dashboard');
@@ -80,61 +86,47 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// Dashboard Utama Marketplace (Bisa diakses pembeli & umum)
 router.get('/dashboard', homeController.index);
 
-// Halaman Dashboard Penjual
-router.get('/seller/dashboard', async (req, res) => {
+// ==========================================
+// RUTE KHUSUS PENJUAL (Diberi Middleware isPenjual)
+// ==========================================
+
+router.get('/seller/dashboard', isPenjual, async (req, res) => {
     try {
         const db = require('../models');
-        // Untuk sementara, kita ambil profil toko pertama (atau nanti disesuaikan dengan session user yang login)
-        const store = await db.StoreProfile.findOne();
+        let store = await db.StoreProfile.findOne({ where: { userId: req.session.userId } });
         res.render('seller-dashboard', { store });
     } catch (err) {
+        console.error('Error loading seller dashboard:', err.message);
         res.status(500).send('Server Error');
     }
 });
 
-router.post('/seller/profile', async (req, res) => {
+router.post('/seller/profile', isPenjual, async (req, res) => {
     try {
         const { nama_toko, nomor_telepon, alamat_toko, caption_produk } = req.body;
         const db = require('../models');
+        const currentUserId = req.session.userId;
 
-        // 1. Cek dari session dulu
-        let currentUserId = req.session ? req.session.userId : null;
-
-        // 2. Fallback: kalau tidak lewat register/login, ambil user yang sudah ada di tabel Users
-        if (!currentUserId) {
-            const existingUser = await db.User.findOne({ order: [['id', 'DESC']] });
-            if (existingUser) {
-                currentUserId = existingUser.id;
-            } else {
-                // Jika tabel Users masih kosong melompong, buatkan 1 akun penjual default
-                const defaultSeller = await db.User.create({
-                    nama: 'Penjual Default',
-                    email: 'seller@tokoroti.com',
-                    password: 'password123',
-                    role: 'penjual'
-                });
-                currentUserId = defaultSeller.id;
-            }
-        }
-
-        let store = await db.StoreProfile.findOne({ where: { userId: currentUserId } });
-
-        if (store) {
-            await store.update({
-                nama_toko,
-                nomor_telepon,
-                alamat_toko,
-                caption_produk
-            });
-        } else {
-            await db.StoreProfile.create({
+        let [store, created] = await db.StoreProfile.findOrCreate({
+            where: { userId: currentUserId },
+            defaults: {
                 nama_toko,
                 nomor_telepon,
                 alamat_toko,
                 caption_produk,
                 userId: currentUserId
+            }
+        });
+
+        if (!created) {
+            await store.update({
+                nama_toko,
+                nomor_telepon,
+                alamat_toko,
+                caption_produk
             });
         }
 
@@ -145,18 +137,65 @@ router.post('/seller/profile', async (req, res) => {
     }
 });
 
-// Halaman Preview Profil Toko
-router.get('/seller/profile-preview', async (req, res) => {
+router.get('/seller/profile-preview', isPenjual, async (req, res) => {
     try {
         const db = require('../models');
-        const store = await db.StoreProfile.findOne();
+        const store = await db.StoreProfile.findOne({ where: { userId: req.session.userId } });
+        
         if (!store) {
             return res.redirect('/seller/dashboard');
         }
-        res.render('seller-preview', { store });
+
+        const rotis = await db.Roti.findAll({ where: { storeId: store.id } });
+        res.render('seller-preview', { store, rotis });
     } catch (err) {
         console.error('Error loading preview:', err.message);
         res.status(500).send('Server Error');
+    }
+});
+
+router.post('/seller/roti/add', isPenjual, async (req, res) => {
+    try {
+        const { nama, kategori, deskripsi, harga, stok } = req.body;
+        const db = require('../models');
+        const store = await db.StoreProfile.findOne({ where: { userId: req.session.userId } });
+
+        if (!store) {
+            return res.status(400).send('GAGAL: Toko belum dibuat.');
+        }
+
+        await db.Roti.create({
+            nama,
+            kategori,
+            deskripsi,
+            harga,
+            stok,
+            storeId: store.id 
+        });
+
+        res.redirect('/seller/profile-preview');
+    } catch (err) {
+        console.error('Error adding roti:', err.message);
+        res.status(500).send('Gagal menambahkan produk roti: ' + err.message);
+    }
+});
+
+// Halaman Detail Toko (Bisa dilihat siapa saja / pembeli)
+router.get('/toko/:id', async (req, res) => {
+    try {
+        const storeId = req.params.id;
+        const db = require('../models');
+
+        const store = await db.StoreProfile.findByPk(storeId);
+        if (!store) {
+            return res.status(404).send('Toko tidak ditemukan!');
+        }
+
+        const rotis = await db.Roti.findAll({ where: { storeId: storeId } });
+        res.render('store-detail', { store, rotis });
+    } catch (err) {
+        console.error('Error loading store detail:', err.message);
+        res.status(500).send('Server Error: ' + err.message);
     }
 });
 

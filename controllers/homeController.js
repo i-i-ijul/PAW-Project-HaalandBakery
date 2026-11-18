@@ -1,17 +1,39 @@
-const db = require('../models');
-const config = require('../config');
+const { StoreProfile, Roti } = require('../models');
+const { Op } = require('sequelize');
 
-exports.index = async (req, res) => {
+async function index(req, res) {
     try {
-        const daftarRoti = await db.Roti.findAll();
+        const searchQuery = req.query.search || '';
+        
+        let storeCondition = {};
+        if (searchQuery) {
+            storeCondition = {
+                nama_toko: {
+                    [Op.iLike]: `%${searchQuery}%`
+                }
+            };
+        }
 
-        res.render('index', {
-            judul: `${config.appName || 'Aplikasi'} - Roti enak`,
-            namaToko: config.appName || 'Toko Roti',
-            produk: daftarRoti, 
+        // Ambil daftar toko beserta produk roti miliknya (jika asosiasi model sudah diset)
+        const stores = await StoreProfile.findAll({
+            where: storeCondition,
+            include: [{
+                model: Roti,
+                as: 'rotis' // Pastikan asosiasi di model StoreProfile sudah mendefinisikan ini, atau bisa di-load terpisah
+            }]
+        });
+
+        res.render('index', { 
+            stores, 
+            searchQuery,
+            namaToko: "Toko Roti"
         });
     } catch (err) {
-        console.error('Error fetching data for home: ', err.message);
-        res.status(500).send('Terjadi kesalahan pada server');
+        console.error('Error loading dashboard:', err.message);
+        res.status(500).send('Server Error');
     }
+}
+
+module.exports = {
+    index
 };

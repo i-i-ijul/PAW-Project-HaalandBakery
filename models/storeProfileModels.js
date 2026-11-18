@@ -25,10 +25,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true // <-- Ubah jadi true agar tidak wajib saat error relasi
         }
+    }, {
+        tableName: 'StoreProfiles'
     });
 
+    // --- TAMBAHKAN BAGIAN INI ---
     StoreProfile.associate = (models) => {
-        StoreProfile.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+        // Menghubungkan satu Toko memiliki banyak Roti
+        StoreProfile.hasMany(models.Roti, { foreignKey: 'storeId', as: 'rotis' });
     };
 
     return StoreProfile;

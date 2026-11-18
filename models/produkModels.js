@@ -6,14 +6,15 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true
         },
         nama: {
-            type: DataTypes.STRING(100), 
+            type: DataTypes.STRING,
+            allowNull: false
         },
         kategori: {
-            type: DataTypes.STRING(50),  
+            type: DataTypes.STRING,
             allowNull: false
         },
         deskripsi: {
-            type: DataTypes.STRING(500), 
+            type: DataTypes.TEXT,
             allowNull: true
         },
         harga: {
@@ -23,10 +24,21 @@ module.exports = (sequelize, DataTypes) => {
         stok: {
             type: DataTypes.INTEGER,
             allowNull: false
+        },
+        storeId: {
+            type: DataTypes.INTEGER,
+            allowNull: true
         }
     }, {
-        tableName: 'roti'
+        tableName: 'roti',
+        timestamps: false
     });
+
+    Roti.associate = (models) => {
+        if (models.StoreProfile) {
+            Roti.belongsTo(models.StoreProfile, { foreignKey: 'storeId', as: 'store' });
+        }
+    };
 
     return Roti;
 };

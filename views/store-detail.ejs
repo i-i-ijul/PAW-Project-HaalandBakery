@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= store.nama_toko %> - Etalase Toko</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #fdf8f5; margin: 0; padding: 2rem; color: #4a2c18; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .store-header { background: #ffffff; padding: 2.5rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 2rem; border-left: 6px solid #b86b35; }
+        .store-header h1 { margin-top: 0; color: #4a2c18; font-size: 2rem; }
+        .store-meta { display: flex; gap: 1.5rem; color: #7d6658; font-size: 0.95rem; margin-top: 0.5rem; }
+        .caption-box { background-color: #faf3ee; padding: 1rem 1.2rem; border-radius: 8px; margin-top: 1.2rem; font-style: italic; color: #5c3d28; border: 1px dashed #d9c8be; }
+        
+        h3 { color: #4a2c18; border-bottom: 2px solid #e5d5cc; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+        .product-card { background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #f0e6e0; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-card h4 { margin: 0 0 0.5rem 0; font-size: 1.2rem; color: #4a2c18; }
+        .badge { display: inline-block; background: #faf3ee; color: #b86b35; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.8rem; }
+        .price { font-size: 1.1rem; font-weight: 700; color: #b86b35; margin-top: 1rem; }
+        .stock { font-size: 0.85rem; color: #7d6658; }
+        .back-link { display: inline-block; margin-bottom: 1.5rem; color: #b86b35; text-decoration: none; font-weight: 600; }
+        .back-link:hover { text-decoration: underline; }
+        .empty-product { background: white; padding: 2rem; text-align: center; border-radius: 12px; color: #7d6658; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="/dashboard" class="base-link back-link">&larr; Kembali ke Beranda Utama</a>
+
+    <!-- Informasi Profil Toko -->
+    <div class="store-header">
+        <h1><%= store.nama_toko %></h1>
+        <div class="store-meta">
+            <span>📞 Telp: <strong><%= store.nomor_telepon %></strong></span>
+            <span>📍 Alamat: <strong><%= store.alamat_toko %></strong></span>
+        </div>
+        <% if (store.caption_produk) { %>
+            <div class="caption-box">
+                "<%= store.caption_produk %>"
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Etalase Roti Milik Toko Ini -->
+    <h3>Menu Roti Pilihan di Toko Ini</h3>
+
+    <% if (rotis && rotis.length > 0) { %>
+        <div class="product-grid">
+            <% rotis.forEach(roti => { %>
+                <div class="product-card">
+                    <div>
+                        <span class="badge"><%= roti.kategori %></span>
+                        <h4><%= roti.nama %></h4>
+                        <p style="font-size: 0.9rem; color: #6e584c; line-height: 1.4; margin: 0;"><%= roti.deskripsi || 'Tidak ada deskripsi produk.' %></p>
+                    </div>
+                    <div>
+                        <div class="price">Rp <%= roti.harga.toLocaleString('id-ID') %></div>
+                        <div class="stock">Tersedia: <%= roti.stok %> stok</div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div class="empty-product">
+            <p>Belum ada produk roti yang didaftarkan di toko ini.</p>
+        </div>
+    <% } %>
+</div>
+
+</body>
+</html>

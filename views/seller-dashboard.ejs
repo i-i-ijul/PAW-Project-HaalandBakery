@@ -14,21 +14,21 @@
         .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; }
         .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #d9c8be; border-radius: 8px; font-size: 0.95rem; outline: none; }
         .form-group input:focus, .form-group textarea:focus { border-color: #b86b35; }
-        .btn { padding: 0.7rem 1.2rem; background-color: #b86b35; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        .btn { padding: 0.8rem 1.4rem; background-color: #b86b35; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: 100%; font-size: 1rem; }
         .btn:hover { background-color: #9c5727; }
-        .btn:disabled { background-color: #d9c8be; cursor: not-allowed; }
         .ai-box { background-color: #faf3ee; padding: 1.2rem; border-radius: 8px; border: 1px dashed #d9c8be; margin-top: 1rem; }
-        .result-caption { background: #fff; padding: 1rem; border-radius: 6px; border: 1px solid #d9c8be; margin-top: 0.8rem; white-space: pre-line; font-size: 0.95rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Setup Toko & AI Caption Produk</h2>
-    <p style="color: #7d6658; margin-bottom: 1.5rem;">Lengkapi profil usaha dan buat caption promosi produk andalanmu menggunakan AI sebelum menyimpan toko.</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="margin: 0;">Setup Toko & AI Caption Produk</h2>
+        <a href="/seller/profile-preview" style="color: #b86b35; text-decoration: none; font-weight: 600;">Lihat Etalase Toko &rarr;</a>
+    </div>
+    <p style="color: #7d6658; margin-bottom: 1.5rem;">Lengkapi informasi profil usahamu dan buat caption promosi menggunakan AI.</p>
 
-    <form action="/seller/profile" method="POST" id="storeForm">
-        <!-- Bagian Profil Usaha -->
+    <form action="/seller/profile" method="POST">
         <div class="card">
             <h3>1. Informasi Profil Usaha</h3>
             <div class="form-group">
@@ -45,29 +45,27 @@
             </div>
         </div>
 
-        <!-- Bagian AI Generator Caption (Wajib) -->
         <div class="card">
-            <h3>2. AI Generator Caption Produk (Wajib)</h3>
-            <p style="font-size: 0.9rem; color: #7d6658;">Generate deskripsi promosi produk rotimu menggunakan AI agar tombol simpan terbuka.</p>
+            <h3>2. AI Generator Caption Produk</h3>
+            <p style="font-size: 0.9rem; color: #7d6658;">Buat deskripsi promosi toko/produk menggunakan AI agar menarik.</p>
             
             <div class="ai-box">
                 <div class="form-group">
-                    <label>Nama Produk & Keunggulan Singkat</label>
-                    <input type="text" id="productInput" placeholder="Contoh: Roti Sourdough keju crispy di luar lembut di dalam">
+                    <label>Deskripsi Singkat Toko/Produk Anda</label>
+                    <input type="text" id="productInput" placeholder="Contoh: Toko roti artisan dengan menu andalan sourdough keju">
                 </div>
-                <button type="button" class="btn" onclick="generateCaption()">Buat Caption dengan AI</button>
+                <button type="button" class="btn" style="background-color: #7d6658; margin-bottom: 1rem;" onclick="generateCaption()">Buat Caption dengan AI</button>
                 
-                <div id="aiLoading" style="display: none; margin-top: 0.8rem; font-style: italic; color: #7d6658;">AI sedang meracik caption...</div>
+                <div id="aiLoading" style="display: none; margin-bottom: 0.8rem; font-style: italic; color: #7d6658;">AI sedang meracik caption...</div>
                 
-                <!-- Tempat menampung hasil generate yang akan dikirim ke database -->
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Hasil Generate Caption AI (Bisa disesuaikan jika perlu)</label>
+                <div class="form-group">
+                    <label>Hasil Generate Caption AI</label>
                     <textarea id="aiResultTextarea" name="caption_produk" rows="4" placeholder="Hasil generate AI akan muncul di sini..." required><%= typeof store !== 'undefined' && store ? store.caption_produk : '' %></textarea>
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="btn" id="submitBtn" style="width: 100%; padding: 0.9rem; font-size: 1rem;">Simpan & Lihat Preview Profil Toko</button>
+        <button type="submit" class="btn">Simpan Profil & Lanjut ke Etalase Toko</button>
     </form>
 </div>
 
@@ -78,7 +76,7 @@
         const loadingDiv = document.getElementById('aiLoading');
 
         if (!productText.trim()) {
-            alert('Masukkan detail produk terlebih dahulu!');
+            alert('Masukkan detail produk/toko terlebih dahulu!');
             return;
         }
 
@@ -88,7 +86,7 @@
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `Buatkan caption promosi yang menarik dan menjual untuk produk roti berikut: ${productText}` })
+                body: JSON.stringify({ message: `Buatkan caption promosi toko roti yang menarik dan menjual berdasarkan: ${productText}` })
             });
             const data = await response.json();
             
