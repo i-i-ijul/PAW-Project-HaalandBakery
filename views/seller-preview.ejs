@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Profil Toko - Toko Roti</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #fdf8f5; margin: 0; padding: 2rem; color: #4a2c18; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: #ffffff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); width: 100%; max-width: 550px; }
+        h2 { margin-top: 0; color: #4a2c18; text-align: center; border-bottom: 2px solid #faf3ee; padding-bottom: 0.8rem; }
+        .info-group { margin-bottom: 1.2rem; }
+        .info-label { font-size: 0.85rem; color: #7d6658; font-weight: 600; text-transform: uppercase; margin-bottom: 0.2rem; }
+        .info-value { font-size: 1rem; color: #2c1810; background: #faf3ee; padding: 0.75rem; border-radius: 8px; border: 1px solid #d9c8be; white-space: pre-line; }
+        .btn-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn { flex: 1; padding: 0.8rem; text-align: center; background-color: #b86b35; color: white; border: none; border-radius: 8px; font-weight: 600; text-decoration: none; cursor: pointer; }
+        .btn:hover { background-color: #9c5727; }
+        .btn-outline { background-color: transparent; border: 1px solid #b86b35; color: #b86b35; }
+        .btn-outline:hover { background-color: #faf3ee; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Preview Profil & Toko Anda</h2>
+
+    <div class="info-group">
+        <div class="info-label">Nama Toko</div>
+        <div class="info-value"><%= store.nama_toko %></div>
+    </div>
+
+    <div class="info-group">
+        <div class="info-label">Nomor Telepon</div>
+        <div class="info-value"><%= store.nomor_telepon %></div>
+    </div>
+
+    <div class="info-group">
+        <div class="info-label">Alamat Toko</div>
+        <div class="info-value"><%= store.alamat_toko %></div>
+    </div>
+
+    <div class="info-group">
+        <div class="info-label">Caption / Deskripsi Produk (Hasil AI)</div>
+        <div class="info-value"><%= store.caption_produk %></div>
+    </div>
+
+    <div class="btn-container">
+        <a href="/seller/dashboard" class="btn btn-outline">Edit Kembali</a>
+        <a href="/dashboard" class="btn">Lanjut ke Dashboard Utama</a>
+    </div>
+</div>
+
+</body>
+</html>

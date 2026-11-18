@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - Toko Roti</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #fdf8f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 2rem 0; }
+        .login-card { background: #ffffff; padding: 2rem 2.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); width: 100%; max-width: 450px; }
+        .login-card h2 { margin-top: 0; margin-bottom: 0.5rem; color: #4a2c18; text-align: center; }
+        .login-card p.subtitle { margin-top: 0; margin-bottom: 1.5rem; color: #7d6658; font-size: 0.9rem; text-align: center; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: #4a2c18; font-size: 0.9rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #d9c8be; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #b86b35; }
+        .role-group { display: flex; gap: 1rem; margin-top: 0.5rem; }
+        .role-option { flex: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; border: 1px solid #d9c8be; border-radius: 8px; cursor: pointer; transition: all 0.2s; user-select: none; }
+        .role-option:hover { background-color: #faf3ee; }
+        .role-option input[type="checkbox"] { accent-color: #b86b35; width: 16px; height: 16px; cursor: pointer; }
+        .store-section { background-color: #faf3ee; padding: 1rem; border-radius: 8px; border: 1px dashed #d9c8be; margin-top: 1rem; display: none; }
+        .store-section.active { display: block; }
+        .btn-login { width: 100%; padding: 0.8rem; background-color: #b86b35; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; transition: background-color 0.2s; }
+        .btn-login:hover { background-color: #9c5727; }
+        .alert-error { background-color: #fee2e2; color: #b91c1c; padding: 0.7rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; text-align: center; }
+        .register-link { text-align: center; margin-top: 1.2rem; font-size: 0.85rem; color: #7d6658; }
+        .register-link a { color: #b86b35; text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>Buat Akun</h2>
+    <p class="subtitle">Daftar untuk mulai bertransaksi atau mengelola toko</p>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="/register" method="POST" id="registerForm">
+        <div class="form-group">
+            <label for="nama">Nama Lengkap</label>
+            <input type="text" id="nama" name="nama" placeholder="Masukkan nama Anda" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="contoh@email.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Buat password" required>
+        </div>
+
+        <div class="form-group">
+            <label>Daftar Sebagai:</label>
+            <div class="role-group">
+                <label class="role-option">
+                    <input type="checkbox" name="role" value="pembeli" class="role-checkbox" checked>
+                    <span>Pembeli</span>
+                </label>
+                <label class="role-option">
+                    <input type="checkbox" name="role" value="penjual" class="role-checkbox" id="checkPenjual">
+                    <span>Penjual</span>
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn-login">Daftar Sekarang</button>
+    </form>
+
+    <div class="register-link">
+        Sudah punya akun? <a href="/login">Masuk di sini</a>
+    </div>
+</div>
+
+<script>
+    const checkboxes = document.querySelectorAll('.role-checkbox');
+    const checkPenjual = document.getElementById('checkPenjual');
+    const storeSection = document.getElementById('storeSection');
+    const registerForm = document.getElementById('registerForm');
+
+    // Atur perilaku mutually exclusive checkbox & tampilkan form toko jika penjual dicentang
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                checkboxes.forEach((cb) => {
+                    if (cb !== this) cb.checked = false;
+                });
+            }
+            
+            // Tampilkan/sembunyikan input profil usaha berdasarkan role penjual
+            if (checkPenjual.checked) {
+                storeSection.classList.add('active');
+                document.getElementById('nama_toko').setAttribute('required', 'true');
+                document.getElementById('nomor_telepon').setAttribute('required', 'true');
+            } else {
+                storeSection.classList.remove('active');
+                document.getElementById('nama_toko').removeAttribute('required');
+                document.getElementById('nomor_telepon').removeAttribute('required');
+            }
+        });
+    });
+
+    registerForm.addEventListener('submit', function(e) {
+        const isAnyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        if (!isAnyChecked) {
+            e.preventDefault();
+            alert('Silakan pilih daftar sebagai Pembeli atau Penjual terlebih dahulu!');
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -40,7 +40,7 @@ async function start() {
     await sequelize.authenticate();
     console.log("Koneksi database berhasil");
 
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log("Sync model selesai");
 
     app.listen(PORT, () => {

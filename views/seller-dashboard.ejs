@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Profil Toko & AI Caption - Toko Roti</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #fdf8f5; margin: 0; padding: 2rem; color: #4a2c18; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card { background: #ffffff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
+        h2, h3 { margin-top: 0; color: #4a2c18; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #d9c8be; border-radius: 8px; font-size: 0.95rem; outline: none; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #b86b35; }
+        .btn { padding: 0.7rem 1.2rem; background-color: #b86b35; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        .btn:hover { background-color: #9c5727; }
+        .btn:disabled { background-color: #d9c8be; cursor: not-allowed; }
+        .ai-box { background-color: #faf3ee; padding: 1.2rem; border-radius: 8px; border: 1px dashed #d9c8be; margin-top: 1rem; }
+        .result-caption { background: #fff; padding: 1rem; border-radius: 6px; border: 1px solid #d9c8be; margin-top: 0.8rem; white-space: pre-line; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Setup Toko & AI Caption Produk</h2>
+    <p style="color: #7d6658; margin-bottom: 1.5rem;">Lengkapi profil usaha dan buat caption promosi produk andalanmu menggunakan AI sebelum menyimpan toko.</p>
+
+    <form action="/seller/profile" method="POST" id="storeForm">
+        <!-- Bagian Profil Usaha -->
+        <div class="card">
+            <h3>1. Informasi Profil Usaha</h3>
+            <div class="form-group">
+                <label>Nama Toko</label>
+                <input type="text" name="nama_toko" value="<%= typeof store !== 'undefined' && store ? store.nama_toko : '' %>" placeholder="Contoh: Toko Roti Berkah" required>
+            </div>
+            <div class="form-group">
+                <label>Nomor Telepon Toko</label>
+                <input type="text" name="nomor_telepon" value="<%= typeof store !== 'undefined' && store ? store.nomor_telepon : '' %>" placeholder="Contoh: 081234567890" required>
+            </div>
+            <div class="form-group">
+                <label>Alamat Toko</label>
+                <textarea name="alamat_toko" rows="2" placeholder="Alamat lengkap toko" required><%= typeof store !== 'undefined' && store ? store.alamat_toko : '' %></textarea>
+            </div>
+        </div>
+
+        <!-- Bagian AI Generator Caption (Wajib) -->
+        <div class="card">
+            <h3>2. AI Generator Caption Produk (Wajib)</h3>
+            <p style="font-size: 0.9rem; color: #7d6658;">Generate deskripsi promosi produk rotimu menggunakan AI agar tombol simpan terbuka.</p>
+            
+            <div class="ai-box">
+                <div class="form-group">
+                    <label>Nama Produk & Keunggulan Singkat</label>
+                    <input type="text" id="productInput" placeholder="Contoh: Roti Sourdough keju crispy di luar lembut di dalam">
+                </div>
+                <button type="button" class="btn" onclick="generateCaption()">Buat Caption dengan AI</button>
+                
+                <div id="aiLoading" style="display: none; margin-top: 0.8rem; font-style: italic; color: #7d6658;">AI sedang meracik caption...</div>
+                
+                <!-- Tempat menampung hasil generate yang akan dikirim ke database -->
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Hasil Generate Caption AI (Bisa disesuaikan jika perlu)</label>
+                    <textarea id="aiResultTextarea" name="caption_produk" rows="4" placeholder="Hasil generate AI akan muncul di sini..." required><%= typeof store !== 'undefined' && store ? store.caption_produk : '' %></textarea>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn" style="width: 100%; padding: 0.9rem; font-size: 1rem;">Simpan & Lihat Preview Profil Toko</button>
+    </form>
+</div>
+
+<script>
+    async function generateCaption() {
+        const productText = document.getElementById('productInput').value;
+        const resultTextarea = document.getElementById('aiResultTextarea');
+        const loadingDiv = document.getElementById('aiLoading');
+
+        if (!productText.trim()) {
+            alert('Masukkan detail produk terlebih dahulu!');
+            return;
+        }
+
+        loadingDiv.style.display = 'block';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `Buatkan caption promosi yang menarik dan menjual untuk produk roti berikut: ${productText}` })
+            });
+            const data = await response.json();
+            
+            loadingDiv.style.display = 'none';
+            resultTextarea.value = data.response || 'Gagal menghasilkan caption.';
+        } catch (err) {
+            loadingDiv.style.display = 'none';
+            alert('Terjadi kesalahan koneksi ke AI.');
+        }
+    }
+</script>
+
+</body>
+</html>

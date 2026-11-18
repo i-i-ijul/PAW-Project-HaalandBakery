@@ -1,0 +1,82 @@
+const express = require('express');
+const homeController = require('../controllers/homeController');
+
+const router = express.Router();
+
+router.get('/', (req, res) => {
+    res.render('login', { error: null });
+});
+
+router.get('/login', (req, res) => {
+    res.render('login', { error: null });
+});
+
+router.get('/register', (req, res) => {
+    res.render('register', { error: null });
+});
+
+// 1. Proses Register: Penjual -> /seller/profile | Pembeli -> /dashboard
+router.post('/register', async (req, res) => {
+    try {
+        const { nama, email, password, role } = req.body;
+        const db = require('../models');
+
+        const newUser = await db.User.create({
+            nama,
+            email,
+            password,
+            role: role || 'pembeli'
+        });
+
+        if (newUser.role === 'penjual') {
+            res.redirect('/seller/profile');
+        } else {
+            res.redirect('/dashboard');
+        }
+    } catch (err) {
+        console.error('Error register:', err.message);
+        res.render('register', { error: 'Terjadi kesalahan saat mendaftar, email mungkin sudah digunakan.' });
+    }
+});
+
+// 2. Halaman Form Profil Usaha Penjual
+router.get('/seller/profile', async (req, res) => {
+    try {
+        const db = require('../models');
+        const store = await db.StoreProfile.findOne();
+        res.render('seller-profile', { store });
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+// 3. Simpan Profil Usaha -> Lanjut ke /dashboard
+router.post('/seller/profile', async (req, res) => {
+    try {
+        const { nama_toko, nomor_telepon, alamat_toko } = req.body;
+        const db = require('../models');
+
+        let store = await db.StoreProfile.findOne();
+
+        if (store) {
+            await store.update({ nama_toko, nomor_telepon, alamat_toko });
+        } else {
+            await db.StoreProfile.create({
+                nama_toko,
+                nomor_telepon,
+                alamat_toko,
+                userId: 1
+            });
+        }
+
+        res.redirect('/dashboard');
+    } catch (err) {
+        console.error('Error saving store profile:', err.message);
+        res.status(500).send('Gagal menyimpan profil toko');
+    }
+});
+
+// 4. Halaman Dashboard Utama
+router.get('/dashboard', homeController.index);
+
+module.exports = router;
