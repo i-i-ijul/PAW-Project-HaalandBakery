@@ -26,8 +26,25 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     User.associate = (models) => {
-        User.hasOne(models.StoreProfile, { foreignKey: 'userId', as: 'storeProfile' });
-    };
 
+    // Satu user memiliki satu profil toko
+    User.hasOne(models.StoreProfile, {
+        foreignKey: 'userId',
+        as: 'storeProfile'
+    });
+
+    // Satu user dapat membuat banyak pesanan
+    User.hasMany(models.Order, {
+        foreignKey: 'buyerId',
+        as: 'orders'
+    });
+
+    // Satu user dapat melakukan banyak perubahan status
+    User.hasMany(models.OrderStatusHistory, {
+        foreignKey: 'changedBy',
+        as: 'orderStatusChanges'
+    });
+
+};
     return User;
 };

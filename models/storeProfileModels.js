@@ -29,11 +29,26 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'StoreProfiles'
     });
 
-    // --- TAMBAHKAN BAGIAN INI ---
     StoreProfile.associate = (models) => {
-        // Menghubungkan satu Toko memiliki banyak Roti
-        StoreProfile.hasMany(models.Roti, { foreignKey: 'storeId', as: 'rotis' });
-    };
 
+    // Toko dimiliki oleh satu user
+    StoreProfile.belongsTo(models.User, {
+        foreignKey: 'userId',
+        as: 'owner'
+    });
+
+    // Toko memiliki banyak produk roti
+    StoreProfile.hasMany(models.Roti, {
+        foreignKey: 'storeId',
+        as: 'rotis'
+    });
+
+    // Toko dapat menerima banyak pesanan
+    StoreProfile.hasMany(models.Order, {
+        foreignKey: 'storeId',
+        as: 'orders'
+    });
+
+};
     return StoreProfile;
 };

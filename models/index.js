@@ -26,10 +26,33 @@ fs
       file.indexOf('.test.js') === -1
     );
   })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+  
+.forEach(file => {
+    console.log(`Loading model: ${file}`);
+
+    try {
+        const modelFactory = require(path.join(__dirname, file));
+
+        const model = modelFactory(sequelize, Sequelize.DataTypes);
+
+        // Validasi hasil inisialisasi model
+        if (!model || !model.name) {
+            throw new Error(
+                `File ${file} tidak mengembalikan model Sequelize yang valid.`
+            );
+        }
+
+        db[model.name] = model;
+
+        console.log(`Model berhasil dimuat: ${model.name}`);
+
+    } catch (err) {
+        console.error(`GAGAL MEMUAT MODEL: ${file}`);
+        console.error(err.message);
+        throw err;
+    }
+});
+
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {

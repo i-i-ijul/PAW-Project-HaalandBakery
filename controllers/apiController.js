@@ -102,7 +102,6 @@ async function generateCaption(req, res) {
       aiResponse = chatCompletion.choices[0]?.message?.content;
     } catch (groqErr) {
       console.warn("Groq AI gagal/model deprecated, menggunakan template lokal:", groqErr.message);
-      // Fallback otomatis jika Groq error, jadi aplikasimu tetap aman dan jalan terus!
       aiResponse = `✨ Promo Spesial Hari Ini! ✨\n\nNikmati kelezatan ${message} buatan kami yang dibuat dengan bahan-bahan pilihan berkualitas tinggi, higienis, dan 100% fresh setiap hari! 🥐🥖\n\nCocok banget untuk menemani waktu santai kamu bareng keluarga atau orang tersayang. Yuk buruan order sebelum kehabisan! 😋🔥\n\n📍 Pesan sekarang dan rasakan nikmatnya di setiap gigitan! #TokoRoti #KulinerEnak #FreshFromTheOven`;
     }
 

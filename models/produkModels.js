@@ -35,10 +35,22 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Roti.associate = (models) => {
-        if (models.StoreProfile) {
-            Roti.belongsTo(models.StoreProfile, { foreignKey: 'storeId', as: 'store' });
-        }
-    };
+
+    // Produk dimiliki oleh satu toko
+    if (models.StoreProfile) {
+        Roti.belongsTo(models.StoreProfile, {
+            foreignKey: 'storeId',
+            as: 'store'
+        });
+    }
+
+    // Produk dapat muncul dalam banyak detail pesanan
+    Roti.hasMany(models.OrderItem, {
+        foreignKey: 'rotiId',
+        as: 'orderItems'
+    });
+
+};
 
     return Roti;
 };

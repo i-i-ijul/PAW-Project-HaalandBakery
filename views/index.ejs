@@ -12,14 +12,18 @@
     </a>
 
     <nav class="site-nav" aria-label="Navigasi utama">
-      <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard">Dashboard</a>
 
-      <% if (userRole === 'penjual') { %>
+    <% if (userRole === 'penjual') { %>
         <a href="/seller/dashboard">Pengaturan Toko</a>
         <a href="/seller/profile-preview">Toko Saya</a>
-      <% } %>
+    <% } %>
 
-      <a href="/login" class="nav-cta" style="background-color: #b94d3b; color: white;">Keluar 🚪</a>
+    <% if (userRole === 'pembeli') { %>
+        <a href="/buyer/orders">Pesanan Saya 📦</a>
+    <% } %>
+
+    <a href="/login" class="nav-cta" style="background-color: #b94d3b; color: white;">Keluar 🚪</a>
     </nav>
   </header>
 

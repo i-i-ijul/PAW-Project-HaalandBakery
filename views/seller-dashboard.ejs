@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -17,60 +18,483 @@
         .btn { padding: 0.8rem 1.4rem; background-color: #b86b35; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: 100%; font-size: 1rem; }
         .btn:hover { background-color: #9c5727; }
         .ai-box { background-color: #faf3ee; padding: 1.2rem; border-radius: 8px; border: 1px dashed #d9c8be; margin-top: 1rem; }
+
+        /* WARNA STATUS PESANAN */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-menunggu_konfirmasi {
+            background: #fff0d9;
+            color: #b86b35;
+        }
+
+        .status-diproses {
+            background: #eaf4ff;
+            color: #315d8a;
+        }
+
+        .status-dikirim {
+            background: #e0f2f1;
+            color: #00796b;
+        }
+
+        .status-selesai {
+            background: #e5f5e9;
+            color: #27834b;
+        }
+
+        .status-ditolak,
+        .status-dibatalkan {
+            background: #fff0ee;
+            color: #c94b43;
+        }
     </style>
 </head>
+
 <body>
 
 <div class="container">
+
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="margin: 0;">Setup Toko & AI Caption Produk</h2>
         <a href="/seller/profile-preview" style="color: #b86b35; text-decoration: none; font-weight: 600;">Lihat Etalase Toko &rarr;</a>
     </div>
-    <p style="color: #7d6658; margin-bottom: 1.5rem;">Lengkapi informasi profil usahamu dan buat caption promosi menggunakan AI.</p>
+
+    <p style="color: #7d6658; margin-bottom: 1.5rem;">
+        Lengkapi informasi profil usahamu dan buat caption promosi menggunakan AI.
+    </p>
+
+
+    <!-- ====================================== -->
+    <!-- BAGIAN 1: DASHBOARD PESANAN MASUK -->
+    <!-- ====================================== -->
+
+    <div class="card">
+
+        <h3>3. Pesanan Masuk</h3>
+
+        <p style="font-size: 0.9rem; color: #7d6658;">
+            Kelola pesanan yang dibuat oleh pembeli di tokomu.
+        </p>
+
+        <% if (orders && orders.length > 0) { %>
+
+            <% orders.forEach(order => { %>
+
+                <div style="
+                    border: 1px solid #eadbd1;
+                    border-radius: 10px;
+                    padding: 18px;
+                    margin-bottom: 18px;
+                    background: #fffdfb;
+                ">
+
+                    <!-- HEADER PESANAN -->
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 10px;
+                        flex-wrap: wrap;
+                    ">
+
+                        <strong>Pesanan #<%= order.id %></strong>
+
+                        <span class="status-badge status-<%= order.status %>">
+                            <%= order.status.replace(/_/g, ' ') %>
+                        </span>
+
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid #eadbd1; margin: 14px 0;">
+
+                    <!-- INFORMASI PEMBELI -->
+                    <p>
+                        <strong>Pembeli:</strong>
+                        <%= order.buyer ? order.buyer.nama : 'Pengguna tidak ditemukan' %>
+                    </p>
+
+                    <p>
+                        <strong>Email:</strong>
+                        <%= order.buyer ? order.buyer.email : '-' %>
+                    </p>
+
+                    <p>
+                        <strong>Waktu Pesanan:</strong>
+                        <%= new Date(order.createdAt).toLocaleString('id-ID') %>
+                    </p>
+
+                    <!-- RINCIAN PRODUK -->
+                    <h4 style="margin-bottom: 10px;">Rincian Produk</h4>
+
+                    <% if (order.items && order.items.length > 0) { %>
+
+                        <% order.items.forEach(item => { %>
+
+                            <div style="
+                                display: flex;
+                                justify-content: space-between;
+                                gap: 12px;
+                                margin-bottom: 8px;
+                                font-size: 0.9rem;
+                            ">
+
+                                <span>
+                                    <%= item.namaProduk %>
+                                    × <%= item.jumlah %>
+                                </span>
+
+                                <strong>
+                                    Rp <%= Number(item.subtotal).toLocaleString('id-ID') %>
+                                </strong>
+
+                            </div>
+
+                        <% }) %>
+
+                    <% } else { %>
+
+                        <p style="color: #7d6658;">
+                            Tidak ada rincian produk.
+                        </p>
+
+                    <% } %>
+
+                    <hr style="border: 0; border-top: 1px solid #eadbd1; margin: 14px 0;">
+
+                    <!-- TOTAL PESANAN -->
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 1.05rem;
+                    ">
+
+                        <strong>Total Pesanan</strong>
+
+                        <strong style="color: #b86b35;">
+                            Rp <%= Number(order.totalHarga).toLocaleString('id-ID') %>
+                        </strong>
+
+                    </div>
+
+
+                    <!-- ====================================== -->
+                    <!-- TOMBOL TINDAKAN BERDASARKAN STATUS -->
+                    <!-- ====================================== -->
+
+
+                    <!-- STATUS: MENUNGGU KONFIRMASI -->
+                    <% if (order.status === 'menunggu_konfirmasi') { %>
+
+                        <div style="
+                            display: flex;
+                            gap: 10px;
+                            margin-top: 20px;
+                            flex-wrap: wrap;
+                        ">
+
+                            <!-- TERIMA PESANAN -->
+                            <form
+                                action="/seller/orders/<%= order.id %>/accept"
+                                method="POST"
+                                style="flex: 1;"
+                                onsubmit="return confirm('Terima pesanan ini dan kurangi stok produk?');"
+                            >
+
+                                <button type="submit" style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    background: #27834b;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                ">
+                                    ✓ Terima Pesanan
+                                </button>
+
+                            </form>
+
+
+                            <!-- TOLAK PESANAN -->
+                            <form
+                                action="/seller/orders/<%= order.id %>/reject"
+                                method="POST"
+                                style="flex: 1;"
+                                onsubmit="return confirm('Yakin ingin menolak pesanan ini?');"
+                            >
+
+                                <button type="submit" style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    background: #c94b43;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                ">
+                                    ✕ Tolak Pesanan
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+                    <!-- STATUS: DIPROSES -->
+                    <% } else if (order.status === 'diproses') { %>
+
+                        <div style="
+                            margin-top: 18px;
+                            padding: 12px;
+                            background: #eaf4ff;
+                            color: #315d8a;
+                            border-radius: 8px;
+                            text-align: center;
+                            font-weight: 600;
+                        ">
+                            Pesanan sedang diproses.
+                        </div>
+
+                        <!-- TOMBOL LANJUTKAN MENJADI DIKIRIM -->
+                        <form
+                            action="/seller/orders/<%= order.id %>/ship"
+                            method="POST"
+                            style="margin-top: 12px;"
+                            onsubmit="return confirm('Tandai pesanan ini sudah dikirim?');"
+                        >
+
+                            <button type="submit" style="
+                                width: 100%;
+                                padding: 12px;
+                                background: #00796b;
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                cursor: pointer;
+                            ">
+                                ✓ Tandai Sudah Dikirim
+                            </button>
+
+                        </form>
+
+
+                    <!-- STATUS: DIKIRIM -->
+                    <% } else if (order.status === 'dikirim') { %>
+
+                        <div style="
+                            margin-top: 18px;
+                            padding: 12px;
+                            background: #e0f2f1;
+                            color: #00796b;
+                            border-radius: 8px;
+                            text-align: center;
+                            font-weight: 600;
+                        ">
+                            Pesanan sedang dikirim.
+                        </div>
+
+
+                    <!-- STATUS: SELESAI -->
+                    <% } else if (order.status === 'selesai') { %>
+
+                        <div style="
+                            margin-top: 18px;
+                            padding: 12px;
+                            background: #e5f5e9;
+                            color: #27834b;
+                            border-radius: 8px;
+                            text-align: center;
+                            font-weight: 600;
+                        ">
+                            Pesanan telah selesai.
+                        </div>
+
+
+                    <!-- STATUS: DITOLAK -->
+                    <% } else if (order.status === 'ditolak') { %>
+
+                        <div style="
+                            margin-top: 18px;
+                            padding: 12px;
+                            background: #fff0ee;
+                            color: #c94b43;
+                            border-radius: 8px;
+                            text-align: center;
+                            font-weight: 600;
+                        ">
+                            Pesanan telah ditolak.
+                        </div>
+
+
+                    <!-- STATUS: DIBATALKAN -->
+                    <% } else if (order.status === 'dibatalkan') { %>
+
+                        <div style="
+                            margin-top: 18px;
+                            padding: 12px;
+                            background: #fff0ee;
+                            color: #c94b43;
+                            border-radius: 8px;
+                            text-align: center;
+                            font-weight: 600;
+                        ">
+                            Pesanan telah dibatalkan.
+                        </div>
+
+                    <% } %>
+
+                </div>
+
+            <% }) %>
+
+        <% } else { %>
+
+            <!-- BELUM ADA PESANAN -->
+            <div style="
+                background: #faf3ee;
+                padding: 25px;
+                text-align: center;
+                border-radius: 10px;
+                color: #7d6658;
+            ">
+                <p>Belum ada pesanan masuk ke tokomu.</p>
+            </div>
+
+        <% } %>
+
+    </div>
+
+
+    <!-- ====================================== -->
+    <!-- BAGIAN 2: SETUP PROFIL TOKO -->
+    <!-- ====================================== -->
 
     <form action="/seller/profile" method="POST">
+
         <div class="card">
+
             <h3>1. Informasi Profil Usaha</h3>
+
             <div class="form-group">
                 <label>Nama Toko</label>
-                <input type="text" name="nama_toko" value="<%= typeof store !== 'undefined' && store ? store.nama_toko : '' %>" placeholder="Contoh: Toko Roti Berkah" required>
+
+                <input
+                    type="text"
+                    name="nama_toko"
+                    value="<%= typeof store !== 'undefined' && store ? store.nama_toko : '' %>"
+                    placeholder="Contoh: Toko Roti Berkah"
+                    required
+                >
             </div>
+
             <div class="form-group">
                 <label>Nomor Telepon Toko</label>
-                <input type="text" name="nomor_telepon" value="<%= typeof store !== 'undefined' && store ? store.nomor_telepon : '' %>" placeholder="Contoh: 081234567890" required>
+
+                <input
+                    type="text"
+                    name="nomor_telepon"
+                    value="<%= typeof store !== 'undefined' && store ? store.nomor_telepon : '' %>"
+                    placeholder="Contoh: 081234567890"
+                    required
+                >
             </div>
+
             <div class="form-group">
                 <label>Alamat Toko</label>
-                <textarea name="alamat_toko" rows="2" placeholder="Alamat lengkap toko" required><%= typeof store !== 'undefined' && store ? store.alamat_toko : '' %></textarea>
+
+                <textarea
+                    name="alamat_toko"
+                    rows="2"
+                    placeholder="Alamat lengkap toko"
+                    required
+                ><%= typeof store !== 'undefined' && store ? store.alamat_toko : '' %></textarea>
             </div>
+
         </div>
+
+
+        <!-- ====================================== -->
+        <!-- BAGIAN 3: AI CAPTION GENERATOR -->
+        <!-- ====================================== -->
 
         <div class="card">
+
             <h3>2. AI Generator Caption Produk</h3>
-            <p style="font-size: 0.9rem; color: #7d6658;">Buat deskripsi promosi toko/produk menggunakan AI agar menarik.</p>
-            
+
+            <p style="font-size: 0.9rem; color: #7d6658;">
+                Buat deskripsi promosi toko/produk menggunakan AI agar menarik.
+            </p>
+
             <div class="ai-box">
+
                 <div class="form-group">
                     <label>Deskripsi Singkat Toko/Produk Anda</label>
-                    <input type="text" id="productInput" placeholder="Contoh: Toko roti artisan dengan menu andalan sourdough keju">
+
+                    <input
+                        type="text"
+                        id="productInput"
+                        placeholder="Contoh: Toko roti artisan dengan menu andalan sourdough keju"
+                    >
                 </div>
-                <button type="button" class="btn" style="background-color: #7d6658; margin-bottom: 1rem;" onclick="generateCaption()">Buat Caption dengan AI</button>
-                
-                <div id="aiLoading" style="display: none; margin-bottom: 0.8rem; font-style: italic; color: #7d6658;">AI sedang meracik caption...</div>
-                
+
+                <button
+                    type="button"
+                    class="btn"
+                    style="background-color: #7d6658; margin-bottom: 1rem;"
+                    onclick="generateCaption()"
+                >
+                    Buat Caption dengan AI
+                </button>
+
+                <div
+                    id="aiLoading"
+                    style="display: none; margin-bottom: 0.8rem; font-style: italic; color: #7d6658;"
+                >
+                    AI sedang meracik caption...
+                </div>
+
                 <div class="form-group">
                     <label>Hasil Generate Caption AI</label>
-                    <textarea id="aiResultTextarea" name="caption_produk" rows="4" placeholder="Hasil generate AI akan muncul di sini..." required><%= typeof store !== 'undefined' && store ? store.caption_produk : '' %></textarea>
+
+                    <textarea
+                        id="aiResultTextarea"
+                        name="caption_produk"
+                        rows="4"
+                        placeholder="Hasil generate AI akan muncul di sini..."
+                        required
+                    ><%= typeof store !== 'undefined' && store ? store.caption_produk : '' %></textarea>
                 </div>
+
             </div>
+
         </div>
 
-        <button type="submit" class="btn">Simpan Profil & Lanjut ke Etalase Toko</button>
+        <button type="submit" class="btn">
+            Simpan Profil & Lanjut ke Etalase Toko
+        </button>
+
     </form>
+
 </div>
 
+
+<!-- ====================================== -->
+<!-- JAVASCRIPT: AI CAPTION GENERATOR -->
+<!-- ====================================== -->
+
 <script>
+
     async function generateCaption() {
+
         const productText = document.getElementById('productInput').value;
         const resultTextarea = document.getElementById('aiResultTextarea');
         const loadingDiv = document.getElementById('aiLoading');
@@ -83,20 +507,35 @@
         loadingDiv.style.display = 'block';
 
         try {
+
             const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `Buatkan caption promosi toko roti yang menarik dan menjual berdasarkan: ${productText}` })
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    message: `Buatkan caption promosi toko roti yang menarik dan menjual berdasarkan: ${productText}`
+                })
             });
+
             const data = await response.json();
-            
+
             loadingDiv.style.display = 'none';
+
             resultTextarea.value = data.response || 'Gagal menghasilkan caption.';
+
         } catch (err) {
+
             loadingDiv.style.display = 'none';
+
             alert('Terjadi kesalahan koneksi ke AI.');
+
         }
+
     }
+
 </script>
 
 </body>

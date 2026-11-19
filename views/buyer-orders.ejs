@@ -1,0 +1,570 @@
+
+<%- include('partials/head', { judul: 'Pesanan Saya - Toko Roti' }) %>
+
+<body>
+
+<style>
+    .orders-page {
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+    }
+
+    .page-heading {
+        margin-bottom: 2rem;
+    }
+
+    .page-eyebrow {
+        font-size: 0.9rem;
+        color: #7d6658;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .page-heading h1 {
+        color: #4a2c18;
+        margin: 0.3rem 0;
+    }
+
+    .page-heading p {
+        color: #6b5344;
+    }
+
+    .order-card {
+        background: white;
+        border: 1px solid #e5d5cc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .order-header h3 {
+        margin: 0;
+        color: #4a2c18;
+    }
+
+    .order-header p {
+        margin: 5px 0;
+        color: #7d6658;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .status-menunggu_konfirmasi {
+        background: #fff7df;
+        color: #b7791f;
+    }
+
+    .status-diproses {
+        background: #eaf4ff;
+        color: #315d8a;
+    }
+
+    .status-dikirim {
+        background: #e5f8fa;
+        color: #087f8c;
+    }
+
+    .status-selesai {
+        background: #e8f7ed;
+        color: #27834b;
+    }
+
+    .status-ditolak {
+        background: #fff0ee;
+        color: #c94b43;
+    }
+
+    .status-dibatalkan {
+        background: #eeeeee;
+        color: #777777;
+    }
+
+    .order-divider {
+        border: 0;
+        border-top: 1px solid #eadbd1;
+        margin: 1rem 0;
+    }
+
+    .section-heading {
+        color: #4a2c18;
+        margin-bottom: 1rem;
+    }
+
+    .product-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+        color: #6b5344;
+    }
+
+    .order-total {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.05rem;
+    }
+
+    .order-total strong:last-child {
+        color: #b86b35;
+    }
+
+    .tracking-section {
+        margin-top: 1.8rem;
+    }
+
+    .tracking-steps {
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+        text-align: center;
+    }
+
+    .tracking-step {
+        flex: 1;
+    }
+
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        margin: 0 auto 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e5d5cc;
+        color: white;
+        font-weight: bold;
+    }
+
+    .step-circle.active {
+        background: #27834b;
+    }
+
+    .step-label {
+        display: block;
+        font-size: 0.72rem;
+        color: #999;
+        font-weight: 600;
+    }
+
+    .step-label.active {
+        color: #27834b;
+    }
+
+    .special-status {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .history-item {
+        border-left: 3px solid #b86b35;
+        padding: 5px 0 8px 12px;
+        margin-bottom: 10px;
+    }
+
+    .history-item strong {
+        color: #4a2c18;
+    }
+
+    .history-item p {
+        margin: 4px 0;
+        color: #7d6658;
+        font-size: 0.9rem;
+    }
+
+    .history-item small {
+        color: #999;
+    }
+
+    .received-button {
+        width: 100%;
+        padding: 13px;
+        background: #27834b;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .received-button:hover {
+        background: #206b3e;
+    }
+
+    .received-message {
+        margin-top: 1.5rem;
+        padding: 12px;
+        background: #e8f7ed;
+        color: #27834b;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .empty-orders {
+        background: white;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        border-radius: 12px;
+        border: 1px dashed #d9c8be;
+    }
+
+    .empty-orders .empty-icon {
+        font-size: 3rem;
+    }
+
+    .empty-orders h3 {
+        color: #4a2c18;
+    }
+
+    .empty-orders p {
+        color: #7d6658;
+    }
+
+    .shop-button {
+        display: inline-block;
+        margin-top: 10px;
+        background: #b86b35;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+        .order-card {
+            padding: 1rem;
+        }
+
+        .tracking-steps {
+            gap: 2px;
+        }
+
+        .step-label {
+            font-size: 0.62rem;
+        }
+
+        .product-row {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<%
+    const statusInfo = {
+        menunggu_konfirmasi: {
+            label: 'Menunggu Konfirmasi',
+            className: 'status-menunggu_konfirmasi'
+        },
+        diproses: {
+            label: 'Sedang Diproses',
+            className: 'status-diproses'
+        },
+        dikirim: {
+            label: 'Sedang Dikirim',
+            className: 'status-dikirim'
+        },
+        selesai: {
+            label: 'Pesanan Selesai',
+            className: 'status-selesai'
+        },
+        ditolak: {
+            label: 'Pesanan Ditolak',
+            className: 'status-ditolak'
+        },
+        dibatalkan: {
+            label: 'Pesanan Dibatalkan',
+            className: 'status-dibatalkan'
+        }
+    };
+
+    const steps = [
+        'menunggu_konfirmasi',
+        'diproses',
+        'dikirim',
+        'selesai'
+    ];
+
+    const stepLabels = {
+        menunggu_konfirmasi: 'Menunggu',
+        diproses: 'Diproses',
+        dikirim: 'Dikirim',
+        selesai: 'Selesai'
+    };
+%>
+
+<header class="site-header shell">
+    <a class="brand" href="/dashboard">
+        <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path
+                    d="M5 18.5c2.4-3 4.7-6.5 7-12 2.3 5.5 4.6 9 7 12M7 15h10M9 11.5h6M10.5 8h3"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </svg>
+        </span>
+        <span>Toko Roti</span>
+    </a>
+
+    <nav class="site-nav">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/buyer/orders">Pesanan Saya</a>
+    </nav>
+</header>
+
+<main class="shell orders-page">
+
+    <div class="page-heading">
+        <span class="page-eyebrow">Dashboard Pembeli</span>
+
+        <h1>Pesanan Saya 📦</h1>
+
+        <p>
+            Pantau perkembangan pesananmu dari toko roti pilihanmu.
+        </p>
+    </div>
+
+    <% if (orders && orders.length > 0) { %>
+
+        <% orders.forEach(order => { %>
+
+            <%
+                const currentStatus = statusInfo[order.status] || {
+                    label: order.status,
+                    className: ''
+                };
+
+                const currentStep = steps.indexOf(order.status);
+            %>
+
+            <section class="order-card">
+
+                <!-- INFORMASI PESANAN -->
+                <div class="order-header">
+
+                    <div>
+                        <h3>Pesanan #<%= order.id %></h3>
+
+                        <p>
+                            Toko:
+                            <strong>
+                                <%= order.store
+                                    ? order.store.nama_toko
+                                    : 'Toko tidak ditemukan' %>
+                            </strong>
+                        </p>
+
+                        <p>
+                            Tanggal:
+                            <%= new Date(order.createdAt).toLocaleString('id-ID') %>
+                        </p>
+                    </div>
+
+                    <span class="status-badge <%= currentStatus.className %>">
+                        <%= currentStatus.label %>
+                    </span>
+
+                </div>
+
+                <hr class="order-divider">
+
+                <!-- RINCIAN PRODUK -->
+                <h4 class="section-heading">Rincian Produk</h4>
+
+                <% if (order.items && order.items.length > 0) { %>
+
+                    <% order.items.forEach(item => { %>
+
+                        <div class="product-row">
+
+                            <span>
+                                <%= item.namaProduk %>
+                                × <%= item.jumlah %>
+                            </span>
+
+                            <strong>
+                                Rp <%= Number(item.subtotal).toLocaleString('id-ID') %>
+                            </strong>
+
+                        </div>
+
+                    <% }) %>
+
+                <% } else { %>
+
+                    <p style="color: #999;">
+                        Tidak ada rincian produk.
+                    </p>
+
+                <% } %>
+
+                <hr class="order-divider">
+
+                <div class="order-total">
+                    <strong>Total Pesanan</strong>
+
+                    <strong>
+                        Rp <%= Number(order.totalHarga).toLocaleString('id-ID') %>
+                    </strong>
+                </div>
+
+                <!-- TRACKING STATUS -->
+                <div class="tracking-section">
+
+                    <h4 class="section-heading">
+                        Tracking Pesanan
+                    </h4>
+
+                    <% if (currentStep !== -1) { %>
+
+                        <div class="tracking-steps">
+
+                            <% steps.forEach((step, index) => { %>
+
+                                <div class="tracking-step">
+
+                                    <div class="step-circle <%= index <= currentStep ? 'active' : '' %>">
+                                        <%= index + 1 %>
+                                    </div>
+
+                                    <small class="step-label <%= index <= currentStep ? 'active' : '' %>">
+                                        <%= stepLabels[step] %>
+                                    </small>
+
+                                </div>
+
+                            <% }) %>
+
+                        </div>
+
+                    <% } else { %>
+
+                        <div class="special-status <%= currentStatus.className %>">
+                            <strong><%= currentStatus.label %></strong>
+                            <p>
+                                Pesanan tidak melanjutkan proses pengiriman normal.
+                            </p>
+                        </div>
+
+                    <% } %>
+
+                </div>
+
+                <!-- RIWAYAT STATUS -->
+                <div class="tracking-section">
+
+                    <h4 class="section-heading">
+                        Riwayat Pesanan
+                    </h4>
+
+                    <% if (order.statusHistories && order.statusHistories.length > 0) { %>
+
+                        <% order.statusHistories.forEach(history => { %>
+
+                            <div class="history-item">
+
+                                <strong>
+                                    <%= statusInfo[history.status]
+                                        ? statusInfo[history.status].label
+                                        : history.status %>
+                                </strong>
+
+                                <p>
+                                    <%= history.keterangan || 'Status pesanan diperbarui.' %>
+                                </p>
+
+                                <small>
+                                    <%= new Date(history.createdAt).toLocaleString('id-ID') %>
+                                </small>
+
+                            </div>
+
+                        <% }) %>
+
+                    <% } else { %>
+
+                        <p style="color: #999;">
+                            Belum ada riwayat status.
+                        </p>
+
+                    <% } %>
+
+                </div>
+
+                <!-- KONFIRMASI PESANAN DITERIMA -->
+                <% if (order.status === 'dikirim') { %>
+
+                    <form
+                        action="/buyer/orders/<%= order.id %>/received"
+                        method="POST"
+                        style="margin-top: 1.5rem;"
+                        onsubmit="return confirm('Apakah kamu yakin pesanan sudah sampai?');"
+                    >
+
+                        <button type="submit" class="received-button">
+                            ✓ Pesanan Sudah Sampai
+                        </button>
+
+                    </form>
+
+                <% } else if (order.status === 'selesai') { %>
+
+                    <div class="received-message">
+                        ✓ Pesanan sudah diterima. Terima kasih!
+                    </div>
+
+                <% } %>
+
+            </section>
+
+        <% }) %>
+
+    <% } else { %>
+
+        <!-- BELUM ADA PESANAN -->
+        <div class="empty-orders">
+
+            <div class="empty-icon">📦</div>
+
+            <h3>Belum Ada Pesanan</h3>
+
+            <p>
+                Kamu belum memiliki pesanan.
+                Yuk, cari toko roti favoritmu!
+            </p>
+
+            <a href="/dashboard" class="shop-button">
+                Mulai Belanja
+            </a>
+
+        </div>
+
+    <% } %>
+
+</main>
+
+<%- include('partials/footer', { namaToko: 'Toko Roti' }) %>
+<%- include('partials/chat-widget') %>
+
+</body>
+</html>
